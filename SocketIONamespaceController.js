@@ -1,7 +1,7 @@
 const controllers = {};
 const socketMiddlewares = [];
 class SocketIONamespaceController {
-  constructor(io, namespace, methods, helpers) {
+  constructor(io, namespace, { methods, helpers }) {
     controllers[namespace] = this;
     this.io = io;
     this.methods = methods || {};
