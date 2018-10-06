@@ -7,8 +7,8 @@ class SocketIONamespaceController {
     this.methods = methods || {};
     this.emitters = emitters || {};
     this.namespace = io.of(namespace);
-    this.methodsKeys = Object.keys(methods);
-    this.emittersKeys = Object.keys(emitters);
+    this.methodsKeys = Object.keys(this.methods);
+    this.emittersKeys = Object.keys(this.emitters);
     this.namespace.on('connect', ({ id, use, on, emit, broadcast: { emit: broadcast } }) => {
       const [ , connectionId ] = id.split('#');
       const namespaceScopes = {};
