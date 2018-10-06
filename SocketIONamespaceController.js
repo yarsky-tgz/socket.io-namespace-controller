@@ -1,5 +1,5 @@
+'use strict';
 const controllers = {};
-const socketMiddlewares = [];
 class SocketIONamespaceController {
   constructor(io, namespace, { methods, emitters }) {
     controllers[namespace] = this;
@@ -7,9 +7,13 @@ class SocketIONamespaceController {
     this.methods = methods || {};
     this.emitters = emitters || {};
     this.namespace = io.of(namespace);
+    this.broadcast = this.namespace.emit.bind(this.namespace);
     this.methodsKeys = Object.keys(this.methods);
     this.emittersKeys = Object.keys(this.emitters);
-    this.namespace.on('connect', ({ id, use, on, emit, broadcast: { emit: broadcast } }) => {
+    this.namespace.on('connect', (socket) => {
+      const { id } = socket;
+      const emit = socket.emit.bind(socket);
+      const broadcast = this.broadcast;
       const [ , connectionId ] = id.split('#');
       const namespaceScopes = {};
       const namespaceEmitters = {};
@@ -19,10 +23,11 @@ class SocketIONamespaceController {
       }, {});
       const to = namespace => {
         const controller = controllers[namespace];
+        const toSocket = this.namespace.to(namespace + '#' + connectionId);
         const that = namespaceScopes[namespace] ||
           (namespaceScopes[namespace] = {
-            emit: this.namespace.to(namespace + '#' + connectionId).emit,
-            broadcast: controller.namespace.emit,
+            emit: toSocket.emit.bind(toSocket),
+            broadcast: controller.broadcast,
             to
           });
         return namespaceEmitters[namespace] || (namespaceEmitters[namespace] = prepareEmitters(controller, that));
@@ -33,16 +38,11 @@ class SocketIONamespaceController {
         emitters: prepareEmitters(this, { emit, broadcast, to }),
         to
       };
-      for (let middleware of socketMiddlewares) use(middleware.bind(that));
       for (let method of this.methodsKeys) {
         that[method] = this.methods[method].bind(that);
-        if (method[0] !== '_') on(method, that[method]);
+        if (method[0] !== '_') socket.on(method, that[method]);
       }
     });
-  }
-  
-  static use(middleware) {
-    socketMiddlewares.push(middleware);
   }
 }
 
