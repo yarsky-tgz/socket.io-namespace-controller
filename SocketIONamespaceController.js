@@ -36,7 +36,8 @@ class SocketIONamespaceController {
         emit,
         broadcast,
         emitters: prepareEmitters(this, { emit, broadcast, to }),
-        to
+        to,
+        socket
       };
       for (let method of this.methodsKeys) {
         that[method] = this.methods[method].bind(that);
