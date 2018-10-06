@@ -1,0 +1,27 @@
+{
+  "name": "socket.io-namespace-controller",
+  "version": "1.0.0",
+  "description": "Wrapper around Socket.IO namespaces which turn them into controller-like objects with advanced abilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yarsky-tgz/socket.io-namespace-controller.git"
+  },
+  "keywords": [
+    "ws",
+    "websocket",
+    "socket",
+    "mixin",
+    "inheritance",
+    "extend"
+  ],
+  "author": "Yaroslav Dobzhanskij <merlyn.tgz@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yarsky-tgz/socket.io-namespace-controller/issues"
+  },
+  "homepage": "https://github.com/yarsky-tgz/socket.io-namespace-controller#readme"
+}
