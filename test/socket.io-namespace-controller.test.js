@@ -25,6 +25,23 @@ describe("testing socket.io namespace controller wrapper", () => {
     expect(on.mock.calls[0][0]).toBe('connect');
     expect(on.mock.calls[0][1]).toBeInstanceOf(Function);
   });
+  test("it creates controller and connected hook is called on connect", () => {
+    const io = initIoMock();
+    const socket = initSocketMock();
+    const setup = subject.driver(io);
+    const testController = {
+      connected: jest.fn()
+    };
+    setup('test', testController);
+    const { on } = io.of.mock.results[0].value;
+    const initializer = on.mock.calls[0][1];
+    initializer(socket);
+    expect(testController.connected).toBeCalled();
+    const connectedHookContext = testController.connected.mock.calls[0][0];
+    expect(connectedHookContext.namespace).toBeDefined();
+    expect(connectedHookContext.socket).toBeDefined();
+    expect(connectedHookContext.context).toBeDefined();
+  });
   test("it creates controller and method is assigned to corresponding event", () => {
     const io = initIoMock();
     const socket = initSocketMock();

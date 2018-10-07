@@ -1,9 +1,10 @@
 'use strict';
 const controllers = {};
 class SocketIONamespaceController {
-  constructor(io, namespace, { methods, emitters }) {
+  constructor(io, namespace, { methods, emitters, connected }) {
     controllers[namespace] = this;
     this.io = io;
+    this.connected = connected;
     this.methods = methods || {};
     this.emitters = emitters || {};
     this.namespace = io.of(namespace);
@@ -17,32 +18,38 @@ class SocketIONamespaceController {
       const [ , connectionId ] = id.split('#');
       const namespaceScopes = {};
       const namespaceEmitters = {};
-      const prepareEmitters = (controller, that) => controller.emittersKeys.reduce((accumulator, key) => {
-        accumulator[key] = controller.emitters[key].bind(that);
+      const prepareEmitters = (controller, context) => controller.emittersKeys.reduce((accumulator, key) => {
+        accumulator[key] = controller.emitters[key].bind(context);
         return accumulator;
-      }, {});
+      }, context.emitters = {});
       const to = namespace => {
         const controller = controllers[namespace];
         const toSocket = this.namespace.to(namespace + '#' + connectionId);
-        const that = namespaceScopes[namespace] ||
+        const context = namespaceScopes[namespace] ||
           (namespaceScopes[namespace] = {
             emit: toSocket.emit.bind(toSocket),
             broadcast: controller.broadcast,
             to
           });
-        return namespaceEmitters[namespace] || (namespaceEmitters[namespace] = prepareEmitters(controller, that));
+        return namespaceEmitters[namespace] || (namespaceEmitters[namespace] = prepareEmitters(controller, context));
       };
-      const that = {
+      const emitterContext = { emit, broadcast, to };
+      const context = {
         emit,
         broadcast,
-        emitters: prepareEmitters(this, { emit, broadcast, to }),
-        to,
-        socket
+        methods: {},
+        emitters: prepareEmitters(this, emitterContext),
+        to
       };
       for (let method of this.methodsKeys) {
-        that[method] = this.methods[method].bind(that);
-        if (method[0] !== '_') socket.on(method, that[method]);
+        context.methods[method] = this.methods[method].bind(context);
+        if (method[0] !== '_') socket.on(method, context.methods[method]);
       }
+      if (this.connected) this.connected({
+        namespace: this.namespace,
+        socket,
+        context
+      });
     });
   }
 }
