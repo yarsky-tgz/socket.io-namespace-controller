@@ -35,7 +35,7 @@ setupController('settings', {
     },
     async update(data) {
       await settingsService.set(data);
-      this.broadcast('data');
+      this.broadcast('data', data);
     }
   }
 })
@@ -71,7 +71,7 @@ and after that we can easily add usage of it into our `settings` controller by e
     async update(data) {
       await settingsService.set(data);
       this.to('notifications').notify('You have successfully updated settings!');
-      this.broadcast('data');
+      this.broadcast('data', data);
     }
 ```
 

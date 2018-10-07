@@ -1,6 +1,6 @@
 {
   "name": "socket.io-namespace-controller",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Wrapper around Socket.IO namespaces which turn them into controller-like objects with advanced abilities",
   "main": "index.js",
   "scripts": {
