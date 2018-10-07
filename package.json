@@ -1,10 +1,10 @@
 {
   "name": "socket.io-namespace-controller",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Wrapper around Socket.IO namespaces which turn them into controller-like objects with advanced abilities",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/yarsky-tgz/socket.io-namespace-controller/issues"
   },
-  "homepage": "https://github.com/yarsky-tgz/socket.io-namespace-controller#readme"
+  "homepage": "https://github.com/yarsky-tgz/socket.io-namespace-controller#readme",
+  "devDependencies": {
+    "coveralls": "^3.0.2",
+    "jest-cli": "^23.6.0"
+  }
 }

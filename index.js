@@ -1,6 +1,5 @@
 const SocketIONamespaceController = require('./SocketIONamespaceController');
 
 module.exports = {
-  driver: io => (namespace, definition) => new SocketIONamespaceController(io, namespace, definition),
-  use: SocketIONamespaceController.use
+  driver: io => (namespace, definition) => new SocketIONamespaceController(io, namespace, definition)
 };
