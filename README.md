@@ -18,7 +18,7 @@ const setupController = require('socket.io-namespace-controller').driver(io);
 
 `setupController(namespace, definition)` takes two arguments:
  * `namespace` - name of socket.io namespace, your controller shall be assigned to
- * `definition` - object, describing your controller logic. It supports two properties:
+ * `definition` - object, describing your controller logic. It can consists from following properties:
    * `methods` - object of methods, which shall be assigned to same named events
    * `emitters` - object of methods, which shall store specific emitter logic and can be called by other controllers
    * `connected` - hook, which should be called after each namespace connection 
