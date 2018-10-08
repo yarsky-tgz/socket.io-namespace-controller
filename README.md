@@ -9,11 +9,11 @@ npm i socket.io-namespace-controller
 
 ## Intro
 
-Main purpose of this library is to compose socket event handlers into objects. So event handler **declaration** and **registration** are separated and logic is now **structured**. We are able to add optional **decorators** to event handlers, apply **mixins** or even use ES6 **classes**. 
+Main purpose of this library is to compose socket event handlers into objects. So event handler **declaration** and **registration** are separated and logic is now **structured** and **encapsulated**. You are able to add optional **decorators** to event handlers, apply **mixins** or even use ES6 **classes**. 
 
 ## Getting started
 
-First, you get `setupController` function from libray, giving it  `socket.io` Server instance:
+First, you need to get `setupController` function from libray, giving it `socket.io` Server instance:
 
 ```javascript
 const io = require('socket.io')(server);
@@ -30,7 +30,7 @@ const setupController = require('socket.io-namespace-controller').driver(io);
    
 ## Methods
 
-Let's create very simple controller, which shall have two events:
+Let's create very simple controller, which shall handle two events:
  * `load` - for settings loading by clients
  * `update` - for settings updating with broadcasting of changed settings to all connected clients.
 
@@ -48,19 +48,22 @@ setupController('settings', {
 })
 ``` 
 
-Simple enough, isn't it? 
+As you can see, `Socket` instance has been bound as `this` to our methods.
 
 ## Emitters
 
 Let's do something more complex and useful for our beloved clients. Client, which changes settings, shall be pleased to see nice green notification on update success. 
 
-Such logic must be separated into own controller, do you agree? So let us create controller, which shall emit notifications:
+Such logic must be separated into own controller, do you agree? So let us create controller, which shall have two methods - for emit notifications to sender, and to all except sender:
 
 ```javascript
 setupController('notifications', {
   emitters: {
     notify(message) {
       this.emit('message', message);
+    },
+    notifyOthers(message) {
+      this.broadcast.emit('message', message);
     }
   }
 });
@@ -72,6 +75,7 @@ and after that we can easily add usage of it into our `settings` controller by e
     async update(data) {
       await settingsService.set(data);
       this.as('notifications').notify('You have successfully updated settings!');
+      this.as('notifications').notifyOthers('Settings updated.');
       this.broadcast.emit('data', data);
     }
 ```
@@ -102,7 +106,7 @@ Each **method** and **emitter** is bound to connected `socket` instance with fol
 
 `created(namespace)` - receives original `namespace`.
 
-That's place for assigning middleware to namespace.
+That's place for assigning middleware to namespace, etc.
 
 Example:
 
@@ -119,3 +123,5 @@ setupController('test', {
 ``` 
 
 `connected(socket)` -  receives `socket`.
+
+That's place fro room joining, etc.
