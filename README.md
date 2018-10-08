@@ -7,9 +7,13 @@ Wrapper around Socket.IO namespaces which turn them into controller-like objects
 npm i socket.io-namespace-controller
 ```
 
+## Intro
+
+Main purpose of this library is to compose socket event handlers into objects. So event handler **declaration** and **registration** are separated and logic is now **structured**. We are able to add optional **decorators** to event handlers, apply **mixins** or even use ES6 **classes**. 
+
 ## Getting started
 
-First, you get `setupController` function from libray, giving it  `socket.io` core object:
+First, you get `setupController` function from libray, giving it  `socket.io` Server instance:
 
 ```javascript
 const io = require('socket.io')(server);
@@ -21,7 +25,10 @@ const setupController = require('socket.io-namespace-controller').driver(io);
  * `definition` - object, describing your controller logic. It can consists from following properties:
    * `methods` - object of methods, which shall be assigned to same named events
    * `emitters` - object of methods, which shall store specific emitter logic and can be called by other controllers
-   * `connected` - hook, which should be called after each namespace connection 
+   * `created` - hooks, which should be called after namespace created
+   * `connected` - hook, which should be called after each socket connection to namespace
+   
+## Methods
 
 Let's create very simple controller, which shall have two events:
  * `load` - for settings loading by clients
@@ -35,7 +42,7 @@ setupController('settings', {
     },
     async update(data) {
       await settingsService.set(data);
-      this.broadcast('data', data);
+      this.broadcast.emit('data', data);
     }
   }
 })
@@ -43,20 +50,14 @@ setupController('settings', {
 
 Simple enough, isn't it? 
 
+## Emitters
+
 Let's do something more complex and useful for our beloved clients. Client, which changes settings, shall be pleased to see nice green notification on update success. 
 
-Such logic must be separated into own controller, isn't it? So any controller shall have ability to send such messages.  
-
-So let us create controller, which shall emit notifications:
+Such logic must be separated into own controller, do you agree? So let us create controller, which shall emit notifications:
 
 ```javascript
 setupController('notifications', {
-  methods: {
-    async getUnread(clientId) {
-      const messages = await notificationsService.getUnreadFor(clientId);
-      for (let message of messages) this.emitters.notify(message);
-    } 
-  },
   emitters: {
     notify(message) {
       this.emit('message', message);
@@ -70,41 +71,51 @@ and after that we can easily add usage of it into our `settings` controller by e
 ```javascript
     async update(data) {
       await settingsService.set(data);
-      this.to('notifications').notify('You have successfully updated settings!');
-      this.broadcast('data', data);
+      this.as('notifications').notify('You have successfully updated settings!');
+      this.broadcast.emit('data', data);
     }
 ```
 
-All events of your namespace, ability of emitting which you want to share across other controllers, must be described as part of `emitters` object. Only object of `emitters` is returned by calling `this.to()` from your controller method. You shall not have direct access to `emit` or `broadcast` of target controller, only through `emitters`.
+All events of your namespace, ability of emitting which you want to share across other controllers, must be described as part of `emitters` object. Only `emitters` object is returned by calling `this.as()` from your controller method. You shall not have direct access to `emit` or `broadcast` of target controller, only through `emitters`.
 
-It done such way to have centralized definition of all shared events, so they are self-documented and well organized by default.
+It done such way for having all namespace events described only in controller they belong to.
 
-## Context (`this`)
+Emitters can be used at their controller methods. For example let's add such method into described above `notifications` controller:
 
-Each **method** is bound to context object with following properties:
- * `emit(event, payload)` - for emitting events to socket. In fact that's `socket.emit` method just assigned to scope, but bound to socket object.
- * `broadcast(event, payload)` - for broadcasting events to namespace. Again, that's `namespace.emit` method, assigned to scope but bound to namespace object.
- * `to(namespaceControllerName)` - method which returns emitters of other controller
+```javascript
+  methods: {
+    async getUnread(clientId) {
+      const messages = await notificationsService.getUnreadFor(clientId);
+      for (let message of messages) this.emitters.notify(message);
+    } 
+  }
+```
+
+## `this` Context
+
+Each **method** and **emitter** is bound to connected `socket` instance with following additional properties assigned:
+ * `as(namespaceControllerName)` - method which returns emitters of another controller
  * `methods` - your controller methods
  * `emitters` - your controller emitters
  
-Each **emitter** is bound to context with same properties, but without `methods`. 
-
-So methods can rely on emitters but not vice versa.
-
-You haven't access to original `socket` or `namespace` by default. But you can add them to context at `connected` hook.
-
 ## Hooks 
 
-`connected({ namespace, socket, context })` -  receives original `namespace`, `socket` and `context` bound to methods.
+`created(namespace)` - receives original `namespace`.
 
-Example of controller with `connected` hook, which is adding `socket` to context: 
+That's place for assigning middleware to namespace.
+
+Example:
 
 ```javascript
 setupController('test', {
   methods: { ... },
-  connected({ socket, context }) {
-    context.socket = socket;
+  created(namespace) {
+    namespace.use((socket, next) => {
+      if (socket.request.headers.cookie) return next();
+      next(new Error('Authentication error'));
+    })
   }
-});
-```
+})
+``` 
+
+`connected(socket)` -  receives `socket`.
