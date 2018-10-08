@@ -35,7 +35,7 @@ Let's create very simple controller, which shall handle two events:
  * `update` - for settings updating with broadcasting of changed settings to all connected clients.
 
 ```javascript
-setupController('settings', {
+setupController('/settings', {
   methods: {
     async load() {
       this.emit('data', await settingsService.all());
@@ -57,7 +57,7 @@ Let's do something more complex and useful for our beloved clients. Client, whic
 Such logic must be separated into own controller, do you agree? So let us create controller, which shall have two methods - for emit notifications to sender, and to all except sender:
 
 ```javascript
-setupController('notifications', {
+setupController('/notifications', {
   emitters: {
     notify(message) {
       this.emit('message', message);
@@ -74,8 +74,8 @@ and after that we can easily add usage of it into our `settings` controller by e
 ```javascript
     async update(data) {
       await settingsService.set(data);
-      this.as('notifications').notify('You have successfully updated settings!');
-      this.as('notifications').notifyOthers('Settings updated.');
+      this.as('/notifications').notify('You have successfully updated settings!');
+      this.as('/notifications').notifyOthers('Settings updated.');
       this.broadcast.emit('data', data);
     }
 ```
@@ -111,7 +111,7 @@ That's place for assigning middleware to namespace, etc.
 Example:
 
 ```javascript
-setupController('test', {
+setupController('/test', {
   methods: { ... },
   created(namespace) {
     namespace.use((socket, next) => {
