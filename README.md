@@ -9,7 +9,7 @@ npm i socket.io-namespace-controller
 
 ## Intro
 
-Main purpose of this library is to compose socket event handlers into objects. So event handler **declaration** and **registration** are separated and logic is now **structured** and **encapsulated**. You are able to add optional **decorators** to event handlers, apply **mixins** or even use ES6 **classes**. 
+Main purpose of this library is to compose socket event handlers into objects. So event handler **declaration** and **registration** are separated and logic is now **structured** and **encapsulated**. Now you can group them into **mixins** and reuse code across controllers. Also you can easily **wrap** your methods at one centralized place. 
 
 ## Getting started
 
@@ -104,7 +104,7 @@ Each **method** and **emitter** is bound to connected `socket` instance with fol
  
 ## Hooks 
 
-`created(namespace)` - receives original `namespace`.
+`created(namespace)` - is called after `namespace` creation. receives original socket.io `Namespace` instance.
 
 That's place for assigning middleware to namespace, etc.
 
@@ -122,6 +122,6 @@ setupController('/test', {
 })
 ``` 
 
-`connected(socket)` -  receives `socket`.
+`connected(socket)` - is called after client connected, receives original socket.io `Socket` instance.
 
-That's place fro room joining, etc.
+That's place for room joining, etc.
