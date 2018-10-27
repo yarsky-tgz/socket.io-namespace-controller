@@ -23,13 +23,22 @@ const runHook = (hook, ...args) => {
   if (!Array.isArray(hook)) return hook(...args);
   hook.forEach(child => child(...args));
 };
-function setupController(io, name, { methods = {}, emitters = {}, connected, created }, ...mixins) {
-  for (const mixin of mixins) {
-    if (mixin.methods) Object.assign(methods, mixin.methods);
-    if (mixin.emitters) Object.assign(emitters, mixin.emitters);
-    if (mixin.created) created = addHook(created, mixin.created);
-    if (mixin.connected) connected = addHook(connected, mixin.connected);
-  }
+const mixin = (origin, ...mixins) => {
+  origin.methods = origin.methods || {};
+  origin.emitters = origin.emitters || {};
+  mixins.forEach((mixin) => {
+    if (mixin.methods) Object.assign(origin.methods, mixin.methods);
+    if (mixin.emitters) Object.assign(origin.emitters, mixin.emitters);
+    if (mixin.created) origin.created = addHook(origin.created, mixin.created);
+    if (mixin.connected) origin.connected = addHook(origin.connected, mixin.connected);
+  });
+};
+function setupController(io, name, origin, ...mixins) {
+  const originCopy = Object.assign({}, origin);
+  originCopy.methods = (originCopy.methods && Object.assign({}, originCopy.methods)) || originCopy.methods;
+  originCopy.emitters = (originCopy.emitters && Object.assign({}, originCopy.emitters)) || originCopy.emitters;
+  mixin(originCopy, ...mixins);
+  const { methods, emitters, connected, created } = originCopy;
   const methodsKeys = Object.keys(methods);
   const emittersKeys = Object.keys(emitters);
   const namespace = namespaces[ name ] = io.of(name);
@@ -39,10 +48,12 @@ function setupController(io, name, { methods = {}, emitters = {}, connected, cre
     socket.as = name => namespaces[ name ].connected[ name + '#' + connectionId ].emitters;
     socket.methods = prepare(methodsKeys, methods, socket, true);
     socket.emitters = prepare(emittersKeys, emitters, socket);
+    socket.connectionId = connectionId;
     if (connected) runHook(connected, socket);
   });
 }
 module.exports = {
   driver: io => (namespace, definition, ...mixins) => setupController(io, namespace, definition, ...mixins),
-  mapGetters
+  mapGetters,
+  mixin
 };
