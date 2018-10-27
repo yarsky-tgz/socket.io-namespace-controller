@@ -24,20 +24,19 @@ const runHook = (hook, ...args) => {
   hook.forEach(child => child(...args));
 };
 const mixin = (origin, ...mixins) => {
-  origin.methods = origin.methods || {};
-  origin.emitters = origin.emitters || {};
+  const copy = Object.assign({}, origin);
+  copy.methods = (copy.methods && Object.assign({}, copy.methods)) || {};
+  copy.emitters = (copy.emitters && Object.assign({}, copy.emitters)) || {};
   mixins.forEach((mixin) => {
-    if (mixin.methods) Object.assign(origin.methods, mixin.methods);
-    if (mixin.emitters) Object.assign(origin.emitters, mixin.emitters);
-    if (mixin.created) origin.created = addHook(origin.created, mixin.created);
-    if (mixin.connected) origin.connected = addHook(origin.connected, mixin.connected);
+    if (mixin.methods) Object.assign(copy.methods, mixin.methods);
+    if (mixin.emitters) Object.assign(copy.emitters, mixin.emitters);
+    if (mixin.created) copy.created = addHook(copy.created, mixin.created);
+    if (mixin.connected) copy.connected = addHook(copy.connected, mixin.connected);
   });
+  return copy;
 };
 function setupController(io, name, origin, ...mixins) {
-  const originCopy = Object.assign({}, origin);
-  originCopy.methods = (originCopy.methods && Object.assign({}, originCopy.methods)) || originCopy.methods;
-  originCopy.emitters = (originCopy.emitters && Object.assign({}, originCopy.emitters)) || originCopy.emitters;
-  mixin(originCopy, ...mixins);
+  const originCopy = mixin(origin, ...mixins);
   const { methods, emitters, connected, created } = originCopy;
   const methodsKeys = Object.keys(methods);
   const emittersKeys = Object.keys(emitters);
