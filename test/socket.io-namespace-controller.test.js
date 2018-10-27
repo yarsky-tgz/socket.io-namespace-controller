@@ -36,6 +36,23 @@ describe("testing socket.io namespace controller wrapper", () => {
     initializer(socket);
     expect(testController.connected).toBeCalledWith(socket);
   });
+  test("it creates controller and both connected hooks are called on connect", () => {
+    const io = initIoMock();
+    const setup = subject.driver(io);
+    const mixinController = {
+      connected: jest.fn()
+    };
+    const testController = {
+      connected: jest.fn()
+    };
+    setup('test', testController, mixinController);
+    const namespace = io.of.mock.results[0].value;
+    const socket = namespace.connected['test#007'];
+    const initializer = namespace.on.mock.calls[0][1];
+    initializer(socket);
+    expect(testController.connected).toBeCalledWith(socket);
+    expect(mixinController.connected).toBeCalledWith(socket);
+  });
   test("it creates controller and created hook is called", () => {
     const io = initIoMock();
     const setup = subject.driver(io);
@@ -45,6 +62,49 @@ describe("testing socket.io namespace controller wrapper", () => {
     setup('test', testController);
     const namespace = io.of.mock.results[0].value;
     expect(testController.created).toBeCalledWith(namespace);
+  });
+  test("it creates controller and both created hooks are called", () => {
+    const io = initIoMock();
+    const setup = subject.driver(io);
+    const mixinController = {
+      created: jest.fn()
+    };
+    const testController = {
+      created: jest.fn()
+    };
+    setup('test', testController, mixinController);
+    const namespace = io.of.mock.results[0].value;
+    expect(testController.created).toBeCalledWith(namespace);
+    expect(mixinController.created).toBeCalledWith(namespace);
+  });
+  test("it creates controller and three created hooks are called", () => {
+    const io = initIoMock();
+    const setup = subject.driver(io);
+    const mixinController = {
+      created: jest.fn()
+    };
+    const thirdController = {
+      created: jest.fn()
+    };
+    const testController = {
+      created: jest.fn()
+    };
+    setup('test', testController, mixinController, thirdController);
+    const namespace = io.of.mock.results[0].value;
+    expect(testController.created).toBeCalledWith(namespace);
+    expect(mixinController.created).toBeCalledWith(namespace);
+    expect(thirdController.created).toBeCalledWith(namespace);
+  });
+  test("it creates controller and only mixed in hook is called", () => {
+    const io = initIoMock();
+    const setup = subject.driver(io);
+    const mixinController = {
+      created: jest.fn()
+    };
+    const testController = {};
+    setup('test', testController, mixinController);
+    const namespace = io.of.mock.results[0].value;
+    expect(mixinController.created).toBeCalledWith(namespace);
   });
   test("it creates controller and method is assigned to corresponding event", () => {
     const io = initIoMock();
@@ -63,6 +123,25 @@ describe("testing socket.io namespace controller wrapper", () => {
     expect(socket.on.mock.calls[0][0]).toBe('go');
     socket.on.mock.calls[0][1]();
     expect(testController.methods.go).toBeCalled();
+  });
+  test("it creates controller and mixin method is assigned to corresponding event", () => {
+    const io = initIoMock();
+    const setup = subject.driver(io);
+    const mixinController = {
+      methods: {
+        go: jest.fn()
+      }
+    };
+    const testController = {};
+    setup('test', testController, mixinController);
+    const { on, connected } = io.of.mock.results[0].value;
+    const socket = connected['test#007'];
+    const initializer = on.mock.calls[0][1];
+    initializer(socket);
+    expect(socket.on).toBeCalled();
+    expect(socket.on.mock.calls[0][0]).toBe('go');
+    socket.on.mock.calls[0][1]();
+    expect(mixinController.methods.go).toBeCalled();
   });
   test("it creates controller and underscored method is not assigned to event", () => {
     const io = initIoMock();
@@ -119,6 +198,29 @@ describe("testing socket.io namespace controller wrapper", () => {
     initializer(socket);
     socket.on.mock.calls[0][1]();
     expect(testController.emitters.walk).toBeCalled();
+  });
+  test("it creates controller and method can call mixed in emitter", () => {
+    const io = initIoMock();
+    const setup = subject.driver(io);
+    const mixinController = {
+      emitters: {
+        walk: jest.fn()
+      },
+    };
+    const testController = {
+      methods: {
+        go: function() {
+          this.emitters.walk();
+        }
+      },
+    };
+    setup('test', testController, mixinController);
+    const { on, connected } = io.of.mock.results[0].value;
+    const socket = connected['test#007'];
+    const initializer = on.mock.calls[0][1];
+    initializer(socket);
+    socket.on.mock.calls[0][1]();
+    expect(mixinController.emitters.walk).toBeCalled();
   });
   test("it creates controller and emitter calls emit on right socket instance", () => {
     const io = initIoMock();
