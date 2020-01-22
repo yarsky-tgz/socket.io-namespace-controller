@@ -2,7 +2,7 @@
 
 Wrapper around Socket.IO namespaces which turn them into controller-like objects with advanced abilities
 
-Рэпер вокруг пространства имён сокета, который превращает их в подобные контроллёру объекты с продвинутыми способностями
+Обёртка вокруг пространства имён сокета, который превращает их в подобные контроллеру объекты с продвинутыми способностями
 
 ## Installation
 
@@ -20,9 +20,8 @@ Main purpose of this library is to compose socket event handlers into objects. S
 separated and logic is now **structured** and **encapsulated**. Now you can group them into **mixins** and reuse code across controllers.
 Also you can easily **wrap** your methods at one centralized place. 
 
-Главная цель этой библиотеки объединить обработчиков событий сокета в объекты. Поэтому событие **декларация** и **регистрация** отдельны 
-и логика теперь ** структурирована** и **инкапсулирована**. Теперь вы можете сгруппировать их в **примеси** и использовать код заново 
-через контроллёров.
+Главная цель этой библиотеки объединить обработчиков событий сокета в объекты. Поэтому обработчик события **декларация** и **регистрация** отдельны и логика теперь **структурирована** и **инкапсулирована**. Теперь вы можете сгруппировать их в **примеси** и использовать код заново через контроллеров.
+Также вы можете легко **свернуть** ваши методы в одно централизованное место.
 
 ## Getting started
 
@@ -30,7 +29,7 @@ Also you can easily **wrap** your methods at one centralized place.
 
 First, you need to get `setupController` function from library, giving it `socket.io` Server instance:
 
-Сначала вам необходимо получить функцию `setupController` из библиотеки, давая ей экземпляр через сервер `socket.io`
+Сначала вам необходимо установить функцию `setupController` из библиотеки, давая ей экземпляр Сервера  через `socket.io`
 
 ```javascript
 const io = require('socket.io')(server);
@@ -61,7 +60,7 @@ Let's create very simple controller, which will handle two events:
  * `load` - for settings loading by clients
  * `update` - for settings updating with broadcasting of changed settings to all connected clients.
  
-Давайте создадим очень простого контроллёра, который обработает два события:
+Давайте создадим очень простой контроллер, который будет обрабатывать два события:
 * `load` - для настроек, загруженных клиентами
 * `update` - для настроек обновления с оповещением изменения настроек для всех подсоединённых клиентов.
 
@@ -81,15 +80,20 @@ setupController('/settings', {
 
 As you can see, `Socket` instance has been bound as `this` to our methods.
 
-Кака вы видите, инстанция `Socket` была указана как `this` в наших методах.
+Как вы видите, экземпляр `Socket` был указан как `this` в наших методах.
 
 ## Emitters
 
+## Эмиттеры
 
 
-Let's do something more complex and useful for our beloved clients. Client, which changes settings, shall be pleased to see nice green notification on update success. 
+Let's do something more complex and useful for our beloved clients. Client, which changes settings, will be pleased to see nice green notification on update success. 
 
-Such logic must be separated into own controller, do you agree? So let us create controller, which shall have two methods - for emit notifications to sender, and to all except sender:
+Давайте сделаем что-то более сложное и полезное для наших любимых клиентов. Клиенту, который меняет настройки, будет приятно увидеть красивое зелёное уведомление на обновлении успеха.
+
+Such logic must be separated into own controller, do you agree? So let us create controller, which will have two methods - for emit notifications to sender, and to all except sender:
+
+Такая логика должна быть отделена в собственного контроллера, вы согласны? Итак давайте создадим контроллера который будет иметь два метода - для отправки уведомлений отправителю и всем, кроме отправителя:
 
 ```javascript
 setupController('/notifications', {
@@ -106,6 +110,8 @@ setupController('/notifications', {
 
 and after that we can easily add usage of it into our `settings` controller by editing `update()` method:
 
+и после этого мы можем легко добавить ено использование в наши `settings` контроллеры, редакитруя `update()` метод:
+
 ```javascript
     async update(data) {
       await settingsService.set(data);
@@ -115,11 +121,18 @@ and after that we can easily add usage of it into our `settings` controller by e
     }
 ```
 
-All events of your namespace, ability of emitting which you want to share across other controllers, must be described as part of `emitters` object. Only `emitters` object is returned by calling `this.as()` from your controller method. You shall not have direct access to `emit` or `broadcast` of target controller, only through `emitters`.
+All events of your namespace, ability of emitting which you want to share across other controllers, must be described as part of `emitters` object. Only `emitters` object is returned by calling `this.as()` from your controller method. You will not have direct access to `emit` or `broadcast` of target controller, only through `emitters`.
 
-It done such way for having all namespace events described only in controller they belong to.
+все события вашего пространства имён, возможность отправки, которой вы хотите поделиться через других контроллеров, должна быть описана как часть объекта `emitters`. Только `emitters` объект возвращается вызовом `this.as()`из вашего метода контроллера. 
+
+It was done in such way for having all namespace events described only in controller they belong to.
+
+Это было сделано таким образом для описания всего пространства имён только в контроллере, к которому они принадлежат. 
 
 Emitters can be used at their controller methods. For example let's add such method into described above `notifications` controller:
+
+Эмиттеры могут быть использованы в своих методах контроллеров. Например, давайте добавим такой метод в описанный выше `notifications`
+контроллер:
 
 ```javascript
   methods: {
@@ -137,13 +150,26 @@ Each **method** and **emitter** is bound to connected `socket` instance with fol
  * `methods` - your controller methods
  * `emitters` - your controller emitters
  
+ Каждый **метод** и **эмиттер** связан с подключенным `socket` экхемпляром следующими дополнительными возможностями, назначенными:
+ * `as(namespaceControllerName)` - метод, который возвращает эмиттеров другого контроллера
+ * `methods` - ваши контроллер методы
+ * `emitters` - ваши контроллер эмитеры
+ 
 ## Hooks 
+
+## Хуки
 
 `created(namespace)` - is called after `namespace` creation. receives original socket.io `Namespace` instance.
 
+`created(namespace)` - названо по созданному `namespace`. получает первоисточник socket.io `Namespace` экземпляр.
+
 That's place for assigning middleware to namespace, etc.
 
+Это место для назначения промежуточного слоя к простоанству имён, и т.д.
+
 Example:
+
+Пример:
 
 ```javascript
 setupController('/test', {
@@ -159,4 +185,8 @@ setupController('/test', {
 
 `connected(socket)` - is called after client connected, receives original socket.io `Socket` instance.
 
+`connected(socket)` - называется в соответствии с подключенным клиентом, получает первоисточник socket.io `Socket` экземпляр.
+
 That's place for room joining, etc.
+
+Это место для присоединения к 
