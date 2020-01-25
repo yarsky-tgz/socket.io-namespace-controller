@@ -1,10 +1,6 @@
 # socket.io-namespace-controller [![Coverage Status](https://coveralls.io/repos/github/yarsky-tgz/socket.io-namespace-controller/badge.svg?branch=master&v=1)](https://coveralls.io/github/yarsky-tgz/socket.io-namespace-controller?branch=master) [![Build Status](https://travis-ci.org/yarsky-tgz/vuex-socket-sync.svg?branch=master)](https://travis-ci.org/yarsky-tgz/vuex-socket-sync)
 
-Wrapper around Socket.IO namespaces which turn them into controller-like objects with advanced abilities
-
-Обёртка вокруг пространства имён сокета, который превращает их в подобные контроллеру объекты с продвинутыми способностями
-
-## Installation
+Обёртка вокруг Socket.IO namespaces, которая позволяет организовать функции обработчики события в объекты.  
 
 ## Установка
 
@@ -12,15 +8,13 @@ Wrapper around Socket.IO namespaces which turn them into controller-like objects
 npm i socket.io-namespace-controller
 ```
 
-## Intro
-
-## ВВедение
+## Введение
 
 Main purpose of this library is to compose socket event handlers into objects. So event handler **declaration** and **registration** are
 separated and logic is now **structured** and **encapsulated**. Now you can group them into **mixins** and reuse code across controllers.
 Also you can easily **wrap** your methods at one centralized place. 
 
-Главная цель этой библиотеки объединить обработчиков событий сокета в объекты. Поэтому обработчик события **декларация** и **регистрация** отдельны и логика теперь **структурирована** и **инкапсулирована**. Теперь вы можете сгруппировать их в **примеси** и использовать код заново через контроллеров.
+Главная цель этой библиотеки объединить обработчики событий сокета в объекты. Поэтому **декларация** и **регистрация** обработчиков событий отдельны и логика теперь **структурирована** и **инкапсулирована**. Теперь вы можете сгруппировать их в **примеси** и использовать код заново через контроллеры.
 Также вы можете легко **свернуть** ваши методы в одно централизованное место.
 
 ## Getting started
